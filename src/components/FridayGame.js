@@ -39,40 +39,57 @@ const FridayGame = () => {
 			<h1>Testing this react thing</h1>
 			<h2>Hello2</h2>
 			<LeftSideInfo deckSize={playerDeck.length} discardSize={playerDiscard.length} remainingLives={livesRemaining} />
-			
+
 			<RightSideInfo deckSize={hazardDeck.length} discardSize={hazardDiscard.length} freeCardsRemaining={freeCardsRemaining}
 				toughnessRemaining={tougnessRemaining} fighting={gameState === gameStateEnum.FIGHTING_HAZARD} />
 
-			<FridayMainDisplay gameState={gameState} hazard={currentHazard} hazardOptions={hazardOptions} optionsOnClick={hazardSelected}
+			<FridayMainDisplay gameState={gameState} hazard={currentHazard} hazardOptions={hazardOptions} optionsOnClick={hazardSelectedBtn}
 				leftCards={leftSideCards} rightCards={rightSideCards} />
 
 			<PlayerInput gameState={gameState} canDraw={playerDeck.length > 0 || playerDiscard.length > 0} 
-				turnClick={nextTurn} drawClick={drawCard} finishClick={finishTurn} />
-			{/* <Deck name="Player" count={playerDeck.length} />
-			<Deck name="Hazard" count={hazardDeck.length} /> */}
-			{/* <HazardSelection options={hazardOptions} onClick={hazardSelected}/> */}
-			{/* <FightingCard {...playerDeck[17]}/>
-			<br>
-			</br>
-			<HazardCard {...hazardDeck[0]} /> */}
+				turnClick={nextTurnBtn} drawClick={drawCardBtn} finishClick={finishTurnBtn} />
 		</div>
 	)
 
 	// Game Logic
-	function hazardSelected(hid) {
+	function hazardSelectedBtn(hid) {
 		console.log(hid);
 	}
 
-	function nextTurn() {
-		console.log("new Turn");
+	function nextTurnBtn() {
+		// Determine next state
+		if (hazardDeck.length > 1)
+		{
+			// draw two hazards and set them as options
+			const cards = [];
+			cards.push(drawCard(hazardDeck, setHazardDeck));
+			cards.push(drawCard(hazardDeck, setHazardDeck));
+			setHazardOptions(() => cards);
+			setGameState(() => gameStateEnum.SELECTING_HAZARD);
+		}
+		else if (hazardDeck.length === 1)
+		{
+			// draw last card and set it as current hazard
+			setCurrentHazard(() => drawCard(hazardDeck, setHazardDeck));
+			setGameState(() => gameStateEnum.FIGHTING_HAZARD);
+		}
+		else
+		{
+			// Game over man to be replaced by difficulty increase and then pirates arrr
+			setGameState(() => gameStateEnum.GAME_OVER);
+		}
 	}
 
-	function drawCard() {
+	function drawCardBtn() {
 		console.log("draw card");
 	}
 
-	function finishTurn() {
+	function finishTurnBtn() {
 		console.log("finish turn");
+	}
+
+	function gameOver() {
+
 	}
 }
 
