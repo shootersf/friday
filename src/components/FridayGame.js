@@ -53,7 +53,22 @@ const FridayGame = () => {
 
 	// Game Logic
 	function hazardSelectedBtn(hid) {
-		console.log(hid);
+		//console.log(hid);
+		// Mark selected and not selected cards
+		const selected = (hid === hazardOptions[0].id) ? hazardOptions[0] : hazardOptions[1];
+		const notSelected = (hid !== hazardOptions[0].id) ? hazardOptions[0] : hazardOptions[1];
+
+		// Set hazard
+		setHazardOptions(() => selected);
+
+		// Add to discard
+		setHazardDisard(() => [...hazardDiscard, notSelected]);
+
+		// clear options
+		setHazardOptions([]);
+
+		// change game state
+		setGameState(() => gameStateEnum.FIGHTING_HAZARD);
 	}
 
 	function nextTurnBtn() {

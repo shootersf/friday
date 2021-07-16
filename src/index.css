@@ -11,13 +11,6 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
-/* Deck */
-.deck {
-  width: 200px;
-  height: 100px;
-  background-color: coral;
-
-}
 
 
 /* Fighting cards */

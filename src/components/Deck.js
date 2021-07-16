@@ -1,9 +1,11 @@
-const Deck = ({ name, count}) => {
+import { StyledDeck } from "./styles/StyledDeck";
+
+const Deck = ({ name, count, background}) => {
 	return (
-		<div className="deck">
+		<StyledDeck background={background}>
 			<p>{name} Deck</p>
 			<p>{count}</p>
-		</div>
+		</StyledDeck>
 	)
 }
 
