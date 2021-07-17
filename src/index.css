@@ -46,18 +46,6 @@ code {
   background-color: white;
 }
 
-/* Hazard Cards */
-.hazard-card {
-  width: 200px;
-  height: 100px;
-  background-color: plum;
-  position: relative;
-  margin-left: 5px;
-  margin-right: 5px;
-  display: flex;
-  justify-content: center;
-}
-
 .hazard-card-name {
   padding-top: 0.5rem;
   text-align: center;

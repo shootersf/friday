@@ -1,15 +1,17 @@
-const HazardCard = ({ name, freeCards, toughness, id, onClick}) => {
+import { StyledHazardCard, StyledName, StyledFree, StyledToughness } from "./styles/StyledHazardCard"
+
+const HazardCard = ({ hname, freeCards, toughness, id, onClick}) => {
 	// visual cue to user that hazard can be selected todo: border?
 	const pointerHazardStyle = {
 		cursor: "pointer"
 	}
 
 	return (
-		<div className="hazard-card" style={onClick ? pointerHazardStyle : null} onClick={ () => onClick(id) }>
-			<div className="hazard-card-name">{name}</div>
-			<div className="hazard-card-free">{freeCards}</div>
-			<div className="hazard-card-toughness">{toughness}</div>
-		</div>
+		<StyledHazardCard style={onClick ? pointerHazardStyle : null} onClick={ () => onClick(id) }>
+			<StyledName>{hname}</StyledName>
+			<StyledFree>{freeCards}</StyledFree>
+			<StyledToughness>{toughness}</StyledToughness>
+		</StyledHazardCard>
 	)
 }
 

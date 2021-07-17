@@ -1,4 +1,7 @@
 import { useState } from 'react'
+import styled from 'styled-components'
+
+import { StyledFridayGame } from './styles/StyledFridayGame'
 
 import LeftSideInfo from './LeftSideInfo'
 import RightSideInfo from './RightSideInfo'
@@ -13,7 +16,11 @@ import hCards from '../data/hazardCards.json'
 import advancedCards from '../data/advancedFightingCards.json'
 
 
-
+// Inline styling for section
+const StyledSection = styled.section`
+	display: flex;
+	flex-direction: column;
+`;
 
 
 const FridayGame = () => {
@@ -35,20 +42,21 @@ const FridayGame = () => {
 
 	
 	return (
-		<div className="friday-game">
-			<h1>Testing this react thing</h1>
-			<h2>Hello2</h2>
+		<StyledFridayGame>
 			<LeftSideInfo deckSize={playerDeck.length} discardSize={playerDiscard.length} remainingLives={livesRemaining} />
+
+			<StyledSection>
+				<FridayMainDisplay gameState={gameState} hazard={currentHazard} hazardOptions={hazardOptions} optionsOnClick={hazardSelectedBtn}
+					leftCards={leftSideCards} rightCards={rightSideCards} />
+
+				<PlayerInput gameState={gameState} canDraw={playerDeck.length > 0 || playerDiscard.length > 0} 
+					turnClick={nextTurnBtn} drawClick={drawCardBtn} finishClick={finishTurnBtn} />
+			</StyledSection>
 
 			<RightSideInfo deckSize={hazardDeck.length} discardSize={hazardDiscard.length} freeCardsRemaining={freeCardsRemaining}
 				toughnessRemaining={tougnessRemaining} fighting={gameState === gameStateEnum.FIGHTING_HAZARD} />
 
-			<FridayMainDisplay gameState={gameState} hazard={currentHazard} hazardOptions={hazardOptions} optionsOnClick={hazardSelectedBtn}
-				leftCards={leftSideCards} rightCards={rightSideCards} />
-
-			<PlayerInput gameState={gameState} canDraw={playerDeck.length > 0 || playerDiscard.length > 0} 
-				turnClick={nextTurnBtn} drawClick={drawCardBtn} finishClick={finishTurnBtn} />
-		</div>
+		</StyledFridayGame>
 	)
 
 	// Game Logic
