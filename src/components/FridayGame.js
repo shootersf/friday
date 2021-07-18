@@ -61,19 +61,22 @@ const FridayGame = () => {
 
 	// Game Logic
 	function hazardSelectedBtn(hid) {
-		//console.log(hid);
 		// Mark selected and not selected cards
 		const selected = (hid === hazardOptions[0].id) ? hazardOptions[0] : hazardOptions[1];
 		const notSelected = (hid !== hazardOptions[0].id) ? hazardOptions[0] : hazardOptions[1];
 
 		// Set hazard
-		setHazardOptions(() => selected);
+		setCurrentHazard(() => selected);
 
 		// Add to discard
 		setHazardDisard(() => [...hazardDiscard, notSelected]);
 
 		// clear options
 		setHazardOptions([]);
+
+		// Update Toughness remaining and free cards
+		setToughnessRemaining(() => selected.toughness);
+		setFreeCardsRemaining(() => selected.freeCards);
 
 		// change game state
 		setGameState(() => gameStateEnum.FIGHTING_HAZARD);
@@ -104,7 +107,23 @@ const FridayGame = () => {
 	}
 
 	function drawCardBtn() {
-		console.log("draw card");
+		// console.log("draw card");
+		//TODO: check if deck is empty
+
+		// Draw card
+		const card = drawCard(playerDeck, setPlayerDeck);
+
+		// Determine which side to add to and add card to stack
+		if (freeCardsRemaining > 0)
+		{
+			setLeftSideCards( () => [...leftSideCards, card]);
+			setFreeCardsRemaining( () => freeCardsRemaining - 1);
+		}
+		else
+		{
+			setRightSideCards( () => [...rightSideCards, card]);
+		}
+		setToughnessRemaining( () => tougnessRemaining - card.power);
 	}
 
 	function finishTurnBtn() {

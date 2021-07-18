@@ -1,5 +1,6 @@
 import { gameStateEnum } from '../constants'
 import HazardSelection from './HazardSelection'
+import MainDisplayFighting from './MainDisplayFighting';
 
 import { StyledFridayMainDisplay } from './styles/StyledFridayMainDisplay';
 
@@ -13,6 +14,12 @@ const FridayMainDisplay = ({ gameState, hazard, hazardOptions, optionsOnClick, l
 				</StyledFridayMainDisplay>
 			);
 			break;
+		case gameStateEnum.FIGHTING_HAZARD:
+			return (
+				<StyledFridayMainDisplay>
+					<MainDisplayFighting hazard={hazard} left={leftCards} right={rightCards}/>
+				</StyledFridayMainDisplay>
+			)
 		default:
 			return <StyledFridayMainDisplay />;
 	}
