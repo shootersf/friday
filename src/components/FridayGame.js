@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import styled from 'styled-components'
 
 import { StyledFridayGame } from './styles/StyledFridayGame'
@@ -8,7 +8,7 @@ import RightSideInfo from './RightSideInfo'
 import FridayMainDisplay from './FridayMainDisplay'
 import PlayerInput from './PlayerInput'
 
-import { drawCard, createDeck, createHazardDeck } from '../helpers'
+import { drawCard, createDeck, createHazardDeck, shuffleDeck, calculateToughnessRemaining } from '../helpers'
 import { TOTAL_LIVES, gameStateEnum } from '../constants'
 
 import starterCards from '../data/starterFightingCards.json'
@@ -26,9 +26,9 @@ const StyledSection = styled.section`
 const FridayGame = () => {
 
 	// Initial state for game
-	const [playerDeck, setPlayerDeck] = useState( () => createDeck(0, starterCards));
+	const [playerDeck, setPlayerDeck] = useState( () => shuffleDeck(createDeck(0, starterCards)));
 	const [playerDiscard, setPlayerDiscard] = useState([]);
-	const [hazardDeck, setHazardDeck] = useState( () => createHazardDeck(18, advancedCards, hCards));
+	const [hazardDeck, setHazardDeck] = useState( () => shuffleDeck(createHazardDeck(18, advancedCards, hCards)));
 	const [hazardDiscard, setHazardDisard] = useState([]);
 	const [exile, setExile] = useState([]);
 	const [hazardOptions, setHazardOptions] = useState([]);
@@ -36,10 +36,15 @@ const FridayGame = () => {
 	const [leftSideCards, setLeftSideCards] = useState([]);
 	const [rightSideCards, setRightSideCards] = useState([]);
 	const [freeCardsRemaining, setFreeCardsRemaining] = useState(0);
-	const [tougnessRemaining, setToughnessRemaining] = useState(0);
+	const [toughnessRemaining, setToughnessRemaining] = useState(0);
 	const [livesRemaining, setLivesRemaining] = useState(TOTAL_LIVES);
 	const [gameState, setGameState] = useState(gameStateEnum.TURN_OVER);
 
+	
+	// updating toughnessRemaining
+	useEffect( ()=> {
+		setToughnessRemaining(calculateToughnessRemaining([...leftSideCards, ...rightSideCards], (currentHazard.toughness) ? currentHazard.toughness : 0))
+	},[leftSideCards,rightSideCards, currentHazard.toughness])
 	
 	return (
 		<StyledFridayGame>
@@ -50,11 +55,12 @@ const FridayGame = () => {
 					leftCards={leftSideCards} rightCards={rightSideCards} />
 
 				<PlayerInput gameState={gameState} canDraw={playerDeck.length > 0 || playerDiscard.length > 0} 
+					lives={livesRemaining} toughness={toughnessRemaining} doomClick={gameOver} cardDrawn={leftSideCards.length > 0}
 					turnClick={nextTurnBtn} drawClick={drawCardBtn} finishClick={finishTurnBtn} />
 			</StyledSection>
 
 			<RightSideInfo deckSize={hazardDeck.length} discardSize={hazardDiscard.length} freeCardsRemaining={freeCardsRemaining}
-				toughnessRemaining={tougnessRemaining} fighting={gameState === gameStateEnum.FIGHTING_HAZARD} />
+				toughnessRemaining={toughnessRemaining} fighting={gameState === gameStateEnum.FIGHTING_HAZARD || gameState === gameStateEnum.IMPENDING_DOOM} />
 
 		</StyledFridayGame>
 	)
@@ -87,16 +93,19 @@ const FridayGame = () => {
 		if (hazardDeck.length > 1)
 		{
 			// draw two hazards and set them as options
-			const cards = [];
-			cards.push(drawCard(hazardDeck, setHazardDeck));
-			cards.push(drawCard(hazardDeck, setHazardDeck));
-			setHazardOptions(() => cards);
+			// const cards = [];
+			// cards.push(drawCard(hazardDeck, setHazardDeck));
+			// cards.push(drawCard(hazardDeck, setHazardDeck));
+			// setHazardOptions(() => cards);
+			drawCard(setHazardDeck, setHazardOptions);
+			drawCard(setHazardDeck, setHazardOptions);
+
 			setGameState(() => gameStateEnum.SELECTING_HAZARD);
 		}
 		else if (hazardDeck.length === 1)
 		{
 			// draw last card and set it as current hazard
-			setCurrentHazard(() => drawCard(hazardDeck, setHazardDeck));
+			//setCurrentHazard(() => drawCard(hazardDeck, setHazardDeck));
 			setGameState(() => gameStateEnum.FIGHTING_HAZARD);
 		}
 		else
@@ -110,24 +119,66 @@ const FridayGame = () => {
 		// console.log("draw card");
 		//TODO: check if deck is empty
 
+		// Keep track of lives for accurate testing 
+		let accurateLives = livesRemaining;
+
 		// Draw card
-		const card = drawCard(playerDeck, setPlayerDeck);
+		//const card = drawCard(playerDeck, setPlayerDeck);
 
 		// Determine which side to add to and add card to stack
 		if (freeCardsRemaining > 0)
 		{
-			setLeftSideCards( () => [...leftSideCards, card]);
+			//setLeftSideCards( () => [...leftSideCards, card]);
+			drawCard(setPlayerDeck, setLeftSideCards);
 			setFreeCardsRemaining( () => freeCardsRemaining - 1);
 		}
 		else
 		{
-			setRightSideCards( () => [...rightSideCards, card]);
+			//setRightSideCards( () => [...rightSideCards, card]);
+			drawCard(setPlayerDeck, setRightSideCards);
+			setLivesRemaining( () => livesRemaining - 1);
+			accurateLives--;
 		}
-		setToughnessRemaining( () => tougnessRemaining - card.power);
+		// setToughnessRemaining( () => toughnessRemaining - card.power);
+		//setToughnessRemaining( () => calculateToughnessRemaining([...leftSideCards, ...rightSideCards], currentHazard.toughness))
+		console.log(accurateLives);
+
+		// check for impending doom
+		if ( (playerDeck.length === 0 && playerDiscard.length === 0) || (freeCardsRemaining === 0 && accurateLives <= 0) )
+		{
+			setGameState(() => gameStateEnum.IMPENDING_DOOM);
+		}
 	}
 
 	function finishTurnBtn() {
-		console.log("finish turn");
+		// check if card was beaten successfully 
+		if (toughnessRemaining <= 0)
+		{
+			// Move hazard to player discard along with all played cards
+			setPlayerDiscard( () => [...playerDiscard, ...leftSideCards, ...rightSideCards, currentHazard]);
+		}
+		else
+		{
+			// Reduce life by difference
+			setLivesRemaining(() => livesRemaining - toughnessRemaining);
+			
+			//TODO: allow player to exile cards for lives lost
+
+			// Move remaining cards to corresponding discards
+			setPlayerDiscard( ()=> [...playerDiscard, ...leftSideCards, ...rightSideCards]);
+			setHazardDisard( ()=> [...hazardDiscard, currentHazard]);
+
+		}
+
+		// Clear
+		setLeftSideCards([]);
+		setRightSideCards([]);
+		setCurrentHazard({});
+		setFreeCardsRemaining(0);
+		setToughnessRemaining(0);
+
+		// Update state
+		setGameState( ()=> gameStateEnum.TURN_OVER);
 	}
 
 	function gameOver() {

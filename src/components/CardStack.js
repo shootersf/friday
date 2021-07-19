@@ -5,7 +5,7 @@ import FightingCard from './FightingCard'
 const CardStack = ({ cards }) => {
 	return (
 		<StyledCardStack>
-			{cards.map( card => <FightingCard {...card}/>)}
+			{cards.map( card => <FightingCard {...card} key={card.id}/>)}
 		</StyledCardStack>
 	)
 }

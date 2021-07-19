@@ -1,19 +1,31 @@
 /* Contains helper functions for deck creation and card draw */
 
-export function drawCard(deck, setDeck) {
-	// Select random position in deck array
-	const position = Math.floor(Math.random() * deck.length);
-	const drawnCard = deck[position];
+export function drawCard(fromSetter, toSetter) {
+	// console.log("drawing card");
+
+  fromSetter( previousCards => {
+    console.log("setting draw pile");
+    const[card, ...remainder] = previousCards;
+
+    sendToToSetter(card);
+
+    return [...remainder];
+  })
+
+  const sendToToSetter = (card) => {
+    // console.log("sending...");
+    toSetter( previousCards => {
+      // console.log(previousCards);
+
+      // Messy fix for duplicates until I can figure out whats wrong
+      if (previousCards.some( element => element === card))
+      {
+        return [...previousCards];
+      }
+      return [...previousCards, card];
+    })
+  }
   
-	// filter card from deck 
-	//const filteredDeck = deck.filter( card => card.id != drawCard.id);
-  
-	//setDeck( deck.filter( card => card.id != drawnCard.id));
-	setDeck( previousState => {
-	  return previousState.filter( card => card.id !== drawnCard.id);
-	})
-  
-	return drawnCard;
 }
 
 /*
@@ -70,4 +82,24 @@ export function createHazardDeck(starterID, construcionArr, hazardArr)
     }
   })
   return deck;
+}
+
+export function shuffleDeck(deck)
+{
+  const shuffled = deck.slice();
+
+  // Knuth shuffle
+  for (let i = shuffled.length - 1; i >= 0; i--)
+  {
+   const randomCard = Math.floor(Math.random() * (i + 1));
+   [shuffled[i], shuffled[randomCard]] = [shuffled[randomCard], shuffled[i]];
+  }
+
+  return shuffled;
+}
+
+export function calculateToughnessRemaining(cards, toughness)
+{
+  cards.forEach(card => toughness -= card.power);
+  return toughness;
 }
