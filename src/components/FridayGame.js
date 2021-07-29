@@ -8,7 +8,7 @@ import RightSideInfo from './RightSideInfo'
 import FridayMainDisplay from './FridayMainDisplay'
 import PlayerInput from './PlayerInput'
 
-import { drawCard, createDeck, createHazardDeck, shuffleDeck, calculateToughnessRemaining } from '../helpers'
+import { createDeck, createHazardDeck, calculateToughnessRemaining } from '../helpers'
 import { DeckBuilder } from '../DeckBuilder'
 
 import { TOTAL_LIVES, gameStateEnum } from '../constants'
@@ -31,17 +31,11 @@ let pDeck;
 const FridayGame = () => {
 
 	// Initial state for game
-	// const [playerDeck, setPlayerDeck] = useState( () => shuffleDeck(createDeck(0, starterCards)));
-	// const [playerDiscard, setPlayerDiscard] = useState([]);
-	// const [hazardDeck, setHazardDeck] = useState( () => shuffleDeck(createHazardDeck(18, advancedCards, hCards)));
-	// const [hazardDiscard, setHazardDisard] = useState([]);
 
 	const [pDeckState, setPDeckState] = useState([]);
 	const [pDiscardState, setPDiscardState] = useState([]);
 	const [hDeckState, setHDeckState] = useState([]);
 	const [hDiscardState, setHDiscardState] = useState([]);
-	
-	// console.log("pdeck", pDeck.deckLength());
 
 	const [exile, setExile] = useState([]);
 	const [hazardOptions, setHazardOptions] = useState([]);
@@ -66,6 +60,7 @@ const FridayGame = () => {
 		setToughnessRemaining(calculateToughnessRemaining([...leftSideCards, ...rightSideCards], (currentHazard.toughness) ? currentHazard.toughness : 0))
 	},[leftSideCards,rightSideCards, currentHazard.toughness])
 	
+
 	return (
 		<StyledFridayGame>
 			<LeftSideInfo deckSize={pDeckState.length} discardSize={pDiscardState.length} remainingLives={livesRemaining} />
@@ -95,14 +90,12 @@ const FridayGame = () => {
 		setCurrentHazard(() => selected);
 
 		// Add to discard
-		//setHazardDisard(() => [...hazardDiscard, notSelected]);
 		hDeck.addToDiscard(notSelected);
 
 		// clear options
 		setHazardOptions([]);
 
-		// Update Toughness remaining and free cards
-		setToughnessRemaining(() => selected.toughness);
+		// Update free cards
 		setFreeCardsRemaining(() => selected.freeCards);
 
 		// change game state
@@ -114,12 +107,8 @@ const FridayGame = () => {
 		if (hDeck.deckLength() > 1)
 		{
 			// draw two hazards and set them as options
-			
-			// drawCard(setHazardDeck, setHazardOptions);
-			// drawCard(setHazardDeck, setHazardOptions);
 			const card1 = hDeck.draw();
 			const card2 = hDeck.draw();
-
 			setHazardOptions(() => [card1, card2]);
 
 			setGameState(() => gameStateEnum.SELECTING_HAZARD);
@@ -139,35 +128,26 @@ const FridayGame = () => {
 	}
 
 	function drawCardBtn() {
-		// console.log("draw card");
 		//TODO: check if deck is empty
 
 		// Keep track of lives for accurate testing 
 		let accurateLives = livesRemaining;
 
 		// Draw card
-
 		// Determine which side to add to and add card to stack
 		if (freeCardsRemaining > 0)
 		{
-			//setLeftSideCards( () => [...leftSideCards, card]);
-			//drawCard(setPlayerDeck, setLeftSideCards);
 			const card = pDeck.draw();
 			setLeftSideCards((prev) => [...prev, card]);
 			setFreeCardsRemaining( () => freeCardsRemaining - 1);
 		}
 		else
 		{
-			//setRightSideCards( () => [...rightSideCards, card]);
-			//drawCard(setPlayerDeck, setRightSideCards);
 			const card = pDeck.draw();
 			setRightSideCards((prev) => [...prev, card]);
 			setLivesRemaining( () => livesRemaining - 1);
 			accurateLives--;
 		}
-		// setToughnessRemaining( () => toughnessRemaining - card.power);
-		//setToughnessRemaining( () => calculateToughnessRemaining([...leftSideCards, ...rightSideCards], currentHazard.toughness))
-		//console.log(accurateLives);
 
 		// check for impending doom
 		if ( (pDeck.deckLength() === 0 && pDeck.discardLength() === 0) || (freeCardsRemaining === 0 && accurateLives <= 0) )
@@ -182,7 +162,6 @@ const FridayGame = () => {
 		if (toughnessRemaining <= 0)
 		{
 			// Move hazard to player discard along with all played cards
-			//setPlayerDiscard( () => [...playerDiscard, ...leftSideCards, ...rightSideCards, currentHazard]);
 			pDeck.addToDiscard(currentHazard, ...leftSideCards, ...rightSideCards);
 		}
 		else // FALSE:
@@ -193,8 +172,6 @@ const FridayGame = () => {
 			//TODO: allow player to exile cards for lives lost
 
 			// Move remaining cards to corresponding discards
-			// setPlayerDiscard( ()=> [...playerDiscard, ...leftSideCards, ...rightSideCards]);
-			// setHazardDisard( ()=> [...hazardDiscard, currentHazard]);
 			pDeck.addToDiscard(...leftSideCards, ...rightSideCards);
 			hDeck.addToDiscard(currentHazard);
 

@@ -14,9 +14,4 @@ FightingCard.propTypes = {
 	name: PropTypes.string,
 }
 
-// const fightingStyle = {
-// 	color: 'red',
-// 	backgroundColor: 'black',
-// }
-
 export default FightingCard

@@ -1,33 +1,5 @@
 /* Contains helper functions for deck creation and card draw */
 
-export function drawCard(fromSetter, toSetter) {
-	// console.log("drawing card");
-
-  fromSetter( previousCards => {
-    console.log("setting draw pile");
-    const[card, ...remainder] = previousCards;
-
-    sendToToSetter(card);
-
-    return [...remainder];
-  })
-
-  const sendToToSetter = (card) => {
-    // console.log("sending...");
-    toSetter( previousCards => {
-      // console.log(previousCards);
-
-      // Messy fix for duplicates until I can figure out whats wrong
-      if (previousCards.some( element => element === card))
-      {
-        return [...previousCards];
-      }
-      return [...previousCards, card];
-    })
-  }
-  
-}
-
 /*
  *  Takes an ID to start counting from and an array of constructors objects (cards without id and with a copies key)
  *  Coverts them to a deck with ids and no copies key
@@ -82,20 +54,6 @@ export function createHazardDeck(starterID, construcionArr, hazardArr)
     }
   })
   return deck;
-}
-
-export function shuffleDeck(deck)
-{
-  const shuffled = deck.slice();
-
-  // Knuth shuffle
-  for (let i = shuffled.length - 1; i >= 0; i--)
-  {
-   const randomCard = Math.floor(Math.random() * (i + 1));
-   [shuffled[i], shuffled[randomCard]] = [shuffled[randomCard], shuffled[i]];
-  }
-
-  return shuffled;
 }
 
 export function calculateToughnessRemaining(cards, toughness)
