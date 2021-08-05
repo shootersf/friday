@@ -8,12 +8,11 @@ export const StyledWrapper = styled.div`
 
 export const StyledHazardCard = styled.div`
 	width: 200px;
-	height: 100px;
+	height: 200px;
 	background-color: crimson;
 	position: relative;
 	display: flex;
 	justify-content: center;
-	padding: 5px;
 `
 
 export const StyledName = styled.div`

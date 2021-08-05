@@ -8,13 +8,13 @@ const HazardCard = ({ name, power, hname, freeCards, toughness, id, onClick}) =>
 	}
 
 	return (
-		<StyledWrapper>
-			<StyledHazardCard style={onClick ? pointerHazardStyle : null} onClick={ () => onClick(id) }>
+		<StyledWrapper style={onClick ? pointerHazardStyle : null}>
+			<StyledHazardCard  onClick={ () => onClick && onClick(id) }>
 				<StyledName>{hname}</StyledName>
 				<StyledFree>{freeCards}</StyledFree>
 				<StyledToughness>{toughness}</StyledToughness>
 			</StyledHazardCard>
-			<FightingCard name={name} power={power} />
+			<FightingCard name={name} power={power} onClick={ () => onClick && onClick(id)} />
 		</StyledWrapper>
 	)
 }

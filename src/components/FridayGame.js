@@ -40,6 +40,8 @@ const FridayGame = () => {
 	const [hDiscardState, setHDiscardState] = useState([]);
 
 	const [exile, setExile] = useState([]);
+	const [tapped, setTapped] = useState([]);
+	const [selected, setSelected] = useState([]);
 	const [hazardOptions, setHazardOptions] = useState([]);
 	const [currentHazard, setCurrentHazard] = useState({});
 	const [leftSideCards, setLeftSideCards] = useState([]);
@@ -84,7 +86,7 @@ const FridayGame = () => {
 
 			<StyledSection>
 				<FridayMainDisplay gameState={gameState} hazard={currentHazard} hazardOptions={hazardOptions} optionsOnClick={hazardSelectedBtn}
-					leftCards={leftSideCards} rightCards={rightSideCards} fightCardClick={fightCardClicked} />
+					leftCards={leftSideCards} rightCards={rightSideCards} fightCardClick={fightCardClicked} tapped={tapped} selected={selected} />
 
 				{playerInput}
 			</StyledSection>
@@ -97,7 +99,11 @@ const FridayGame = () => {
 
 	// Game Logic
 	function fightCardClicked(id) {
-		console.log(`Clicked card id ${id}`);
+		// return if card is already tapped
+		if (tapped.indexOf(id) !== -1) return;
+
+		// Add to tapped
+		setTapped( prev => [...prev, id]);
 	}
 
 	function hazardSelectedBtn(hid) {

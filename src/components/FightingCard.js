@@ -1,12 +1,13 @@
 import PropTypes from 'prop-types'
+import { StyledFightingCard, StyledName, StyledPower } from './styles/StyledFightingCard'
 
 
-const FightingCard = ({ name, power, id, onClick }) => {
+const FightingCard = ({ name, power, id, tapped, selected, onClick }) => {
 	return (
-		<div className="fight-card" onClick={() => onClick(id)}>
-			<div className="fight-card-name">{name}</div>
-			<div className="fight-card-power">{power}</div>
-		</div>
+		<StyledFightingCard  onClick={() => onClick && onClick(id)} tapped={tapped} selected={selected}>
+			<StyledName >{name}</StyledName>
+			<StyledPower>{power}</StyledPower>
+		</StyledFightingCard>
 	)
 }
 
