@@ -6,7 +6,6 @@ import { StyledFridayGame } from './styles/StyledFridayGame'
 import LeftSideInfo from './LeftSideInfo'
 import RightSideInfo from './RightSideInfo'
 import FridayMainDisplay from './FridayMainDisplay'
-import PlayerInput from './PlayerInput'
 import EndOfTurnInput from './EndOfTurnInput'
 import FightingInput from './FightingInput'
 
@@ -34,6 +33,7 @@ const FridayGame = () => {
 
 	// Initial state for game
 
+	// Deck states are managed by object returned by deckbuilder when methods of that object such as draw are called.
 	const [pDeckState, setPDeckState] = useState([]);
 	const [pDiscardState, setPDiscardState] = useState([]);
 	const [hDeckState, setHDeckState] = useState([]);
@@ -84,11 +84,8 @@ const FridayGame = () => {
 
 			<StyledSection>
 				<FridayMainDisplay gameState={gameState} hazard={currentHazard} hazardOptions={hazardOptions} optionsOnClick={hazardSelectedBtn}
-					leftCards={leftSideCards} rightCards={rightSideCards} />
+					leftCards={leftSideCards} rightCards={rightSideCards} fightCardClick={fightCardClicked} />
 
-				{/* <PlayerInput gameState={gameState} canDraw={pDeckState.length > 0 || pDiscardState.length > 0} 
-					lives={livesRemaining} toughness={toughnessRemaining} doomClick={gameOver} cardDrawn={leftSideCards.length > 0}
-					turnClick={nextTurnBtn} drawClick={drawCardBtn} finishClick={finishTurnBtn} /> */}
 				{playerInput}
 			</StyledSection>
 
@@ -99,6 +96,10 @@ const FridayGame = () => {
 	)
 
 	// Game Logic
+	function fightCardClicked(id) {
+		console.log(`Clicked card id ${id}`);
+	}
+
 	function hazardSelectedBtn(hid) {
 		// Mark selected and not selected cards
 		const selected = (hid === hazardOptions[0].id) ? hazardOptions[0] : hazardOptions[1];
@@ -121,6 +122,9 @@ const FridayGame = () => {
 	}
 
 	function nextTurnBtn() {
+		// debug log decks
+		console.log("playerDeck", pDeckState);
+		console.log("hazardDeck", hDeckState);
 		// Determine next state
 		if (hDeck.deckLength() > 1)
 		{

@@ -4,7 +4,7 @@
  *  Takes an ID to start counting from and an array of constructors objects (cards without id and with a copies key)
  *  Coverts them to a deck with ids and no copies key
 */
-export function createDeck(starterID, constructionArr)
+export function createDeck(starterID, constructionArr, exileCost = 1)
 {
   let id = starterID;
   const deck = [];
@@ -21,6 +21,9 @@ export function createDeck(starterID, constructionArr)
         if(key !== "copies")
           card[key] = cardCons[key];
       }
+      // Add exile cost
+      card.exileCost = exileCost;
+
       deck.push(card);
       id++;
     }
@@ -28,7 +31,7 @@ export function createDeck(starterID, constructionArr)
   return deck;
 }
 
-export function createHazardDeck(starterID, construcionArr, hazardArr)
+export function createHazardDeck(starterID, construcionArr, hazardArr, exileCost = 1)
 {
   let id = starterID;
   const deck = [];
@@ -41,6 +44,8 @@ export function createHazardDeck(starterID, construcionArr, hazardArr)
       card.id = id;
       card.name = cardCons.name;
       card.power = cardCons.power[i];
+      card.exileCost = exileCost;
+
       // attach hazard
       const hazardID = cardCons.hID[i];
       const hazard = hazardArr[hazardID];

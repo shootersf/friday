@@ -7,8 +7,10 @@ const HazardSelection = ({ options , onClick }) => {
 		return (
 		<div className="hazard-options">
 			<h3> Select the next hazard:</h3>
-			<HazardCard {...options[0]} onClick={onClick}/>
-			<HazardCard {...options[1]} onClick={onClick}/>
+			<section style={{display:"flex"}}>
+				<HazardCard {...options[0]} onClick={onClick}/>
+				<HazardCard {...options[1]} onClick={onClick}/>
+			</section>
 		</div>
 		)
 	}

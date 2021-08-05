@@ -2,10 +2,10 @@ import React from 'react'
 import { StyledCardStack } from './styles/StyledCardStack'
 import FightingCard from './FightingCard'
 
-const CardStack = ({ cards }) => {
+const CardStack = ({ cards, fightCardClick }) => {
 	return (
 		<StyledCardStack>
-			{cards.map( card => <FightingCard {...card} key={card.id}/>)}
+			{cards.map( card => <FightingCard {...card} onClick={fightCardClick} key={card.id}/>)}
 		</StyledCardStack>
 	)
 }

@@ -1,5 +1,11 @@
 import styled from "styled-components";
 
+export const StyledWrapper = styled.div`
+	display: flex;
+	flex-direction: column;
+	margin: 5px;
+`
+
 export const StyledHazardCard = styled.div`
 	width: 200px;
 	height: 100px;
@@ -7,7 +13,6 @@ export const StyledHazardCard = styled.div`
 	position: relative;
 	display: flex;
 	justify-content: center;
-	margin: 5px;
 	padding: 5px;
 `
 

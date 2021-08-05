@@ -4,7 +4,7 @@ import MainDisplayFighting from './MainDisplayFighting';
 
 import { StyledFridayMainDisplay } from './styles/StyledFridayMainDisplay';
 
-const FridayMainDisplay = ({ gameState, hazard, hazardOptions, optionsOnClick, leftCards, rightCards }) => {
+const FridayMainDisplay = ({ gameState, hazard, hazardOptions, optionsOnClick, leftCards, rightCards, fightCardClick }) => {
 
 	switch(gameState) {
 		case gameStateEnum.SELECTING_HAZARD:
@@ -18,7 +18,7 @@ const FridayMainDisplay = ({ gameState, hazard, hazardOptions, optionsOnClick, l
 		case gameStateEnum.IMPENDING_DOOM:
 			return (
 				<StyledFridayMainDisplay>
-					<MainDisplayFighting hazard={hazard} left={leftCards} right={rightCards}/>
+					<MainDisplayFighting hazard={hazard} left={leftCards} right={rightCards} fightCardClick={fightCardClick}/>
 				</StyledFridayMainDisplay>
 			)
 		default:
