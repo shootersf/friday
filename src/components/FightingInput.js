@@ -1,4 +1,5 @@
 import React from 'react'
+import { StyledFightingInput } from './styles/StyledFightingInput';
 
 const FightingInput = ({ haveDrawn, lives, toughness, freeCards, cardsAvailable, drawClick, finishClick, doomClick }) => {
 
@@ -23,10 +24,10 @@ const FightingInput = ({ haveDrawn, lives, toughness, freeCards, cardsAvailable,
 		endButton = <button onClick={finishClick}>Finish Fight</button>
 	}
 	return (
-		<div>
+		<StyledFightingInput>
 			{drawButton}
 			{endButton}
-		</div>
+		</StyledFightingInput>
 	)
 }
 

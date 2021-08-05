@@ -17,6 +17,7 @@ import { TOTAL_LIVES, gameStateEnum } from '../constants'
 import starterCards from '../data/starterFightingCards.json'
 import hCards from '../data/hazardCards.json'
 import advancedCards from '../data/advancedFightingCards.json'
+import ExilingInput from './ExilingInput'
 
 
 // Inline styling for section
@@ -40,6 +41,7 @@ const FridayGame = () => {
 	const [hDiscardState, setHDiscardState] = useState([]);
 
 	const [exile, setExile] = useState([]);
+	const [exilePoints, setExilePoints] = useState(0);
 	const [tapped, setTapped] = useState([]);
 	const [selected, setSelected] = useState([]);
 	const [hazardOptions, setHazardOptions] = useState([]);
@@ -76,6 +78,9 @@ const FridayGame = () => {
 				haveDrawn={leftSideCards.length > 0} cardsAvailable={pDeckState.length + pDiscardState.length > 0}
 				drawClick={drawCardBtn} finishClick={finishTurnBtn} doomClick={gameOver} />;
 			break;
+		case gameStateEnum.EXILING:
+			playerInput = <ExilingInput exilePoints={exilePoints} finishClick={finishExile} />
+			break;
 		default:
 			playerInput = null;
 	}
@@ -98,12 +103,45 @@ const FridayGame = () => {
 	)
 
 	// Game Logic
-	function fightCardClicked(id) {
-		// return if card is already tapped
-		if (tapped.indexOf(id) !== -1) return;
+	function fightCardClicked(id, exileCost) {
+		// // return if card is already tapped
+		// if (tapped.indexOf(id) !== -1) return;
 
-		// Add to tapped
-		setTapped( prev => [...prev, id]);
+		// // Add to tapped
+		// setTapped( prev => [...prev, id]);
+
+		// // Toggle selected
+		// if (selected.indexOf(id) === -1)
+		// {
+		// 	setSelected( prev => [...prev, id]);
+		// }
+		// else
+		// {
+		// 	setSelected(selected.filter(selID => selID !== id));
+		// }
+		switch (gameState) 
+		{
+			case gameStateEnum.EXILING:
+				handleExileCardSelected(id, exileCost);
+				break;
+			default:
+				return;
+		}
+	}
+
+	function handleExileCardSelected(id, exileCost) {
+		// toggle selected and adjust value of exilePoints
+		if (selected.indexOf(id) === -1)
+		{
+			// Not in.
+			setSelected(prev => [...prev, id]);
+			setExilePoints(prev => prev - exileCost);
+		}
+		else 
+		{
+			setSelected(selected.filter(selID => selID !== id));
+			setExilePoints(prev => prev + exileCost);
+		}
 	}
 
 	function hazardSelectedBtn(hid) {
@@ -144,7 +182,6 @@ const FridayGame = () => {
 		else if (hDeck.deckLength() === 1)
 		{
 			// draw last card and set it as current hazard
-			//setCurrentHazard(() => drawCard(hazardDeck, setHazardDeck));
 			setCurrentHazard(() => hDeck.draw());
 			setGameState(() => gameStateEnum.FIGHTING_HAZARD);
 		}
@@ -156,10 +193,14 @@ const FridayGame = () => {
 	}
 
 	function drawCardBtn() {
-		//TODO: check if deck is empty
+		// check if deck is empty
+		if (pDeck.deckLength() === 0)
+		{
+			// TODO add aging card
 
-		// Keep track of lives for accurate testing 
-		let accurateLives = livesRemaining;
+			// Shuffle back in
+			pDeck.shuffleWithDiscard();
+		}
 
 		// Draw card
 		// Determine which side to add to and add card to stack
@@ -174,14 +215,8 @@ const FridayGame = () => {
 			const card = pDeck.draw();
 			setRightSideCards((prev) => [...prev, card]);
 			setLivesRemaining( () => livesRemaining - 1);
-			accurateLives--;
 		}
 
-		// check for impending doom
-		// if ( (pDeck.deckLength() === 0 && pDeck.discardLength() === 0) || (freeCardsRemaining === 0 && accurateLives <= 0) )
-		// {
-		// 	setGameState(() => gameStateEnum.IMPENDING_DOOM);
-		// }
 	}
 
 	function finishTurnBtn() {
@@ -191,33 +226,84 @@ const FridayGame = () => {
 		{
 			// Move hazard to player discard along with all played cards
 			pDeck.addToDiscard(currentHazard, ...leftSideCards, ...rightSideCards);
+
+			clearFightStates();
+
+			// Clear tapped and selected
+			setSelected([]);
+			setTapped([]);
+
+			// Update state
+			setGameState( ()=> gameStateEnum.TURN_OVER);
 		}
 		else // FALSE:
 		{
+			// Set initial exile points
+			setExilePoints(toughnessRemaining);
+
 			// Reduce life by difference
 			setLivesRemaining(() => livesRemaining - toughnessRemaining);
+
+			// Clear selected
+			setSelected([]);
 			
 			//TODO: allow player to exile cards for lives lost
+			setGameState( ()=> gameStateEnum.EXILING);
 
 			// Move remaining cards to corresponding discards
-			pDeck.addToDiscard(...leftSideCards, ...rightSideCards);
-			hDeck.addToDiscard(currentHazard);
+			//pDeck.addToDiscard(...leftSideCards, ...rightSideCards);
+			//hDeck.addToDiscard(currentHazard);
 
 		}
+	}
 
+	function finishExile() {
+			// collect all played cards into initial array then split them between discard and exile
+			const allPlayed = [...leftSideCards, ...rightSideCards];
+			const toDiscard = [];
+			const toExile = [];
+
+			allPlayed.forEach(card => {
+				if (selected.indexOf(card.id) === -1)
+				{
+					toDiscard.push(card);
+				}
+				else
+				{
+					toExile.push(card);
+				}
+			});
+
+			// debugging
+			console.log("todiscard", toDiscard);
+			console.log("toExile", toExile);
+
+			// Move cards
+			pDeck.addToDiscard(...toDiscard);
+			hDeck.addToDiscard(currentHazard);
+			setExile(prev => [...prev, ...toExile]);
+
+			// cleanup
+			setSelected([]);
+			setTapped([]);
+			clearFightStates();
+
+			// Update state
+			setGameState( ()=> gameStateEnum.TURN_OVER);
+	}
+
+	function gameOver() {
+
+	}
+
+	// Helpers
+	function clearFightStates() {
 		// Clear
 		setLeftSideCards([]);
 		setRightSideCards([]);
 		setCurrentHazard({});
 		setFreeCardsRemaining(0);
 		setToughnessRemaining(0);
-
-		// Update state
-		setGameState( ()=> gameStateEnum.TURN_OVER);
-	}
-
-	function gameOver() {
-
 	}
 }
 

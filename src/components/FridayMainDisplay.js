@@ -15,7 +15,7 @@ const FridayMainDisplay = ({ gameState, hazard, hazardOptions, optionsOnClick, l
 			);
 			break;
 		case gameStateEnum.FIGHTING_HAZARD:
-		case gameStateEnum.IMPENDING_DOOM:
+		case gameStateEnum.EXILING:
 			return (
 				<StyledFridayMainDisplay>
 					<MainDisplayFighting hazard={hazard} left={leftCards} right={rightCards} fightCardClick={fightCardClick} tapped={tapped} selected={selected}/>

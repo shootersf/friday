@@ -8,6 +8,7 @@ export const StyledFightingCard = styled.div`
 	display: flex;
 	justify-content: center;
 	transform: ${ props => (props.tapped) ? "rotate(90deg)" : ""};
+	border: ${ props => (props.selected) ? "solid 1px black" : "0"};
 `
 
 export const StyledName = styled.div`
