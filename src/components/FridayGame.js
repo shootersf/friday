@@ -7,6 +7,8 @@ import LeftSideInfo from './LeftSideInfo'
 import RightSideInfo from './RightSideInfo'
 import FridayMainDisplay from './FridayMainDisplay'
 import PlayerInput from './PlayerInput'
+import EndOfTurnInput from './EndOfTurnInput'
+import FightingInput from './FightingInput'
 
 import { createDeck, createHazardDeck, calculateToughnessRemaining } from '../helpers'
 import { DeckBuilder } from '../DeckBuilder'
@@ -60,6 +62,21 @@ const FridayGame = () => {
 		setToughnessRemaining(calculateToughnessRemaining([...leftSideCards, ...rightSideCards], (currentHazard.toughness) ? currentHazard.toughness : 0))
 	},[leftSideCards,rightSideCards, currentHazard.toughness])
 	
+	// Calculate input to show
+	let playerInput;
+	switch(gameState) 
+	{
+		case gameStateEnum.TURN_OVER:
+			playerInput = <EndOfTurnInput turnClick={nextTurnBtn} />;
+			break;
+		case gameStateEnum.FIGHTING_HAZARD:
+			playerInput = <FightingInput lives={livesRemaining} freeCards={freeCardsRemaining} toughness={toughnessRemaining} 
+				haveDrawn={leftSideCards.length > 0} cardsAvailable={pDeckState.length + pDiscardState.length > 0}
+				drawClick={drawCardBtn} finishClick={finishTurnBtn} doomClick={gameOver} />;
+			break;
+		default:
+			playerInput = null;
+	}
 
 	return (
 		<StyledFridayGame>
@@ -69,13 +86,14 @@ const FridayGame = () => {
 				<FridayMainDisplay gameState={gameState} hazard={currentHazard} hazardOptions={hazardOptions} optionsOnClick={hazardSelectedBtn}
 					leftCards={leftSideCards} rightCards={rightSideCards} />
 
-				<PlayerInput gameState={gameState} canDraw={pDeckState.length > 0 || pDiscardState.length > 0} 
+				{/* <PlayerInput gameState={gameState} canDraw={pDeckState.length > 0 || pDiscardState.length > 0} 
 					lives={livesRemaining} toughness={toughnessRemaining} doomClick={gameOver} cardDrawn={leftSideCards.length > 0}
-					turnClick={nextTurnBtn} drawClick={drawCardBtn} finishClick={finishTurnBtn} />
+					turnClick={nextTurnBtn} drawClick={drawCardBtn} finishClick={finishTurnBtn} /> */}
+				{playerInput}
 			</StyledSection>
 
 			<RightSideInfo deckSize={hDeckState.length} discardSize={hDiscardState.length} freeCardsRemaining={freeCardsRemaining}
-				toughnessRemaining={toughnessRemaining} fighting={gameState === gameStateEnum.FIGHTING_HAZARD || gameState === gameStateEnum.IMPENDING_DOOM} />
+				toughnessRemaining={toughnessRemaining} fighting={Object.keys(currentHazard).length > 0} />
 
 		</StyledFridayGame>
 	)
@@ -150,10 +168,10 @@ const FridayGame = () => {
 		}
 
 		// check for impending doom
-		if ( (pDeck.deckLength() === 0 && pDeck.discardLength() === 0) || (freeCardsRemaining === 0 && accurateLives <= 0) )
-		{
-			setGameState(() => gameStateEnum.IMPENDING_DOOM);
-		}
+		// if ( (pDeck.deckLength() === 0 && pDeck.discardLength() === 0) || (freeCardsRemaining === 0 && accurateLives <= 0) )
+		// {
+		// 	setGameState(() => gameStateEnum.IMPENDING_DOOM);
+		// }
 	}
 
 	function finishTurnBtn() {
