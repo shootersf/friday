@@ -14,9 +14,9 @@ import { DeckBuilder } from '../DeckBuilder'
 
 import { TOTAL_LIVES, gameStateEnum } from '../constants'
 
-import starterCards from '../data/starterFightingCards.json'
-import hCards from '../data/hazardCards.json'
-import advancedCards from '../data/advancedFightingCards.json'
+import { starterFightingCards } from '../data/starterFightingCards.js'
+import { hazardCards } from '../data/hazardCards.js'
+import { advancedFightingCards } from '../data/advancedFightingCards.js'
 import ExilingInput from './ExilingInput'
 
 
@@ -55,8 +55,8 @@ const FridayGame = () => {
 
 	// Setup the decks on first render
 	useEffect( ()=> {
-		hDeck = DeckBuilder(createHazardDeck(18, advancedCards, hCards), setHDeckState, setHDiscardState);
-		pDeck = DeckBuilder(createDeck(0, starterCards), setPDeckState, setPDiscardState);
+		hDeck = DeckBuilder(createHazardDeck(18, advancedFightingCards, hazardCards), setHDeckState, setHDiscardState);
+		pDeck = DeckBuilder(createDeck(0, starterFightingCards), setPDeckState, setPDiscardState);
 		hDeck.shuffleWithDiscard();
 		pDeck.shuffleWithDiscard();
 	}, [])

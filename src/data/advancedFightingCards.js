@@ -1,4 +1,4 @@
-[
+export const advancedFightingCards = [
 	{
 		"name": "books",
 		"power": [0],

@@ -1,4 +1,4 @@
-[
+export const hazardCards = [
 	{
 		"hname":"With the raft to the wreck",
 		"freeCards": 1,
