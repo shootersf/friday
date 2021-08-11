@@ -25,6 +25,6 @@ export const starterFightingCards = [
 		"name": "eating",
 		"power": 0,
 		"copies": 1,
-		"ability": abilities.plus1Life,
+		"ability": abilities.plus2Life,
 	}
 ]

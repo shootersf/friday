@@ -12,16 +12,19 @@ export function DeckBuilder(initialDeck, setDeckState, setDiscardState)
 			// Null if empty
 			if(_deck.length === 0) return null;
 
-			console.log("beforeDrawing", _deck);
 			// Top card
 			let card = _deck.pop();
-			console.log("drawing card", card);
-			console.log("remaining deck", _deck);
 
 			// Update state
 			_deckState( () => _deck);
 
 			return card;
+		},
+		putOnTop(card) {
+			_deck.push(card);
+
+			// Update state
+			_deckState( () => _deck);
 		},
 		addToDiscard(...cards) {
 			_discard.unshift(...cards);

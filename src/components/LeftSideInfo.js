@@ -6,7 +6,7 @@ const LeftSideInfo = ({ deckSize, discardSize, remainingLives }) => {
 		<StyledLeftSideInfo>
 			<Deck name="Player" count={deckSize} background="MediumSpringGreen" />
 			<Deck name="Player Discard" count={discardSize} background="MediumSpringGreen" />
-			<h3> Lives remaining: {remainingLives}</h3>
+			<h3> Lives remaining: {remainingLives}/22</h3>
 		</StyledLeftSideInfo>
 	)
 }

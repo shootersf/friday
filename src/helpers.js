@@ -43,6 +43,7 @@ export function createHazardDeck(starterID, construcionArr, hazardArr, exileCost
       const card = {};
       card.id = id;
       card.name = cardCons.name;
+      card.ability = cardCons.ability;
       card.power = cardCons.power[i];
       card.exileCost = exileCost;
 
@@ -61,8 +62,3 @@ export function createHazardDeck(starterID, construcionArr, hazardArr, exileCost
   return deck;
 }
 
-export function calculateToughnessRemaining(cards, toughness)
-{
-  cards.forEach(card => toughness -= card.power);
-  return toughness;
-}

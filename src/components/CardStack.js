@@ -2,10 +2,18 @@ import React from 'react'
 import { StyledCardStack } from './styles/StyledCardStack'
 import FightingCard from './FightingCard'
 
-const CardStack = ({ cards, fightCardClick, tapped, selected }) => {
+const CardStack = ({ cards, fightCardClick, tapped, selected, faceDown }) => {
+
 	return (
 		<StyledCardStack>
-			{cards.map( card => <FightingCard {...card} tapped={tapped.indexOf(card.id) !== -1} selected={selected.indexOf(card.id) !== -1} onClick={fightCardClick} key={card.id}/>)}
+			{cards.map( card => {
+				const id = card.id;
+				const isTapped = tapped.includes(id);
+				const isSelected = selected.includes(id);
+				const isFaceDown = faceDown.includes(id);
+
+				return <FightingCard {...card} tapped={isTapped} selected={isSelected} faceDown={isFaceDown} key={id} onClick={fightCardClick} />;
+			})}
 		</StyledCardStack>
 	)
 }
