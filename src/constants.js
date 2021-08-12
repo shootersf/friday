@@ -27,4 +27,6 @@ export const abilities = {
     stopFree: 15,
 }
 
+export const phaseColours = ['green', 'yellow', 'red'];
+
 export const TOTAL_LIVES = 20;

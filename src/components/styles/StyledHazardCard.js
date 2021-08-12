@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import { phaseColours } from "../../constants";
 
 export const StyledWrapper = styled.div`
 	display: flex;
@@ -9,7 +10,7 @@ export const StyledWrapper = styled.div`
 export const StyledHazardCard = styled.div`
 	width: 200px;
 	height: 200px;
-	background-color: crimson;
+	background-color: SandyBrown;
 	position: relative;
 	display: flex;
 	justify-content: center;
@@ -34,13 +35,19 @@ export const StyledFree = styled.div`
 	background-color: white;
 `
 
-export const StyledToughness = styled.div`
+export const StyledToughnessContainer = styled.div`
 	font-size: 1.7rem;
 	position: absolute;
 	top: 40px;
 	right: 5px;
+	display: flex;
+	flex-direction: column;
+	
+`
+
+export const StyledToughness = styled.div`
 	color: black;
-	background-color: green;
+	background-color: ${props => phaseColours[props.phase]};
 	padding: 3px;
 	padding-left: 5px;
 	padding-right: 5px;

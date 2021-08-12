@@ -41,7 +41,8 @@ let dummyCard = {
 }
 
 // Debug mode
-const debugMode = true;
+const debugCardAbility = false;
+const debugPhaseChange = true;
 
 let playerInput;				// Which input component is displayed. 
 let selectingMode = false;		// Whether selecting cards is allowed.
@@ -57,6 +58,8 @@ const FridayGame = () => {
 	const [hDeckState, setHDeckState] = useState([]);
 	const [hDiscardState, setHDiscardState] = useState([]);
 
+	const [phase, setPhase] = useState(0);
+	const [phaseModifier, setPhaseModifier] = useState(0);
 	const [exile, setExile] = useState([]);
 	const [exilePoints, setExilePoints] = useState(0);
 	const [tapped, setTapped] = useState([]);
@@ -85,12 +88,21 @@ const FridayGame = () => {
 		pDeck.shuffleWithDiscard();
 
 		// If debug add dummy card
-		if (debugMode) pDeck.putOnTop(dummyCard);
+		if (debugCardAbility) pDeck.putOnTop(dummyCard);
+
+		if (debugPhaseChange) {
+			const toDiscard = [];
+			for (let i = 0; i < 25; i++)
+			{
+				toDiscard.push(hDeck.draw());
+			}
+			hDeck.addToDiscard(...toDiscard);
+		}
 	}, [])
 	
 	// updating toughnessRemaining
 	useEffect( ()=> {
-		setToughnessRemaining(calculateToughnessRemaining([...leftSideCards, ...rightSideCards], (currentHazard.toughness) ? currentHazard.toughness : 0))
+		setToughnessRemaining(calculateToughnessRemaining([...leftSideCards, ...rightSideCards], (currentHazard.toughness) ? currentHazard.toughness : [0, 0, 0]))
 	},[leftSideCards,rightSideCards, faceDown, doubled, currentHazard.toughness])
 	
 	// Calculate input to show.
@@ -141,7 +153,7 @@ const FridayGame = () => {
 			</StyledSection>
 
 			<RightSideInfo deckSize={hDeckState.length} discardSize={hDiscardState.length} freeCardsRemaining={freeCardsRemaining}
-				toughnessRemaining={toughnessRemaining} fighting={Object.keys(currentHazard).length > 0} />
+				toughnessRemaining={toughnessRemaining} fighting={Object.keys(currentHazard).length > 0} phase={phase} phaseModifier={phaseModifier} />
 
 		</StyledFridayGame>
 	)
@@ -299,13 +311,27 @@ const FridayGame = () => {
 		else if (hDeck.deckLength() === 1)
 		{
 			// draw last card and set it as current hazard
-			setCurrentHazard(() => hDeck.draw());
+			const card = hDeck.draw();
+			setCurrentHazard(() =>card);
+			// Update free cards
+			setFreeCardsRemaining(() => card.freeCards);
+
 			setGameState(() => gameStateEnum.FIGHTING_HAZARD);
 		}
 		else
 		{
-			// Game over man to be replaced by difficulty increase and then pirates arrr
-			setGameState(() => gameStateEnum.GAME_OVER);
+			// Update phase if less than 2, shuffle and recall function
+			if (phase < 2)
+			{
+				hDeck.shuffleWithDiscard();
+				setPhase(prev => prev + 1);
+				nextTurnBtn();
+			}
+			else 
+			{
+				// Game over man to be replaced by difficulty increase and then pirates arrr
+				setGameState(() => gameStateEnum.GAME_OVER);
+			}
 		}
 	}
 
@@ -420,8 +446,12 @@ const FridayGame = () => {
 		setFaceDown([]);
 	}
 
-	function calculateToughnessRemaining(cards, toughness)
+	function calculateToughnessRemaining(cards, toughnessArr)
 	{
+		
+		const phaseToUse = Math.max(phase + phaseModifier, 0);
+		let toughness = toughnessArr[phaseToUse];
+
 		cards.forEach(card => {
 			if(!faceDown.includes(card.id))
 			{
