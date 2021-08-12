@@ -36,7 +36,7 @@ let dummyCard = {
 	id: 1000,
 	power: 0,
 	name: "DUMMY",
-	ability: abilities.destroy,
+	ability: abilities.double,
 	exileCost: 1,
 }
 
@@ -91,7 +91,7 @@ const FridayGame = () => {
 	// updating toughnessRemaining
 	useEffect( ()=> {
 		setToughnessRemaining(calculateToughnessRemaining([...leftSideCards, ...rightSideCards], (currentHazard.toughness) ? currentHazard.toughness : 0))
-	},[leftSideCards,rightSideCards, faceDown, currentHazard.toughness])
+	},[leftSideCards,rightSideCards, faceDown, doubled, currentHazard.toughness])
 	
 	// Calculate input to show.
 	
@@ -115,6 +115,9 @@ const FridayGame = () => {
 					case abilities.destroy:
 						playerInput = <SelectionAbilityInput text="Select card to destroy" selected={selected} onClick={handleCardDestruction} />
 						break;
+					case abilities.double:
+						playerInput = <SelectionAbilityInput text="Select card to double" selected={selected} onClick={handleCardDoubling} />
+						break;
 					default:
 						console.log("Danger Will Robinson!! danger");
 				}
@@ -132,7 +135,7 @@ const FridayGame = () => {
 			<StyledSection>
 				<FridayMainDisplay gameState={gameState} hazard={currentHazard} hazardOptions={hazardOptions} optionsOnClick={hazardSelectedBtn}
 					leftCards={leftSideCards} rightCards={rightSideCards} fightCardClick={fightCardClicked} tapped={tapped} selected={selected}
-					faceDown={faceDown} />
+					faceDown={faceDown} doubled={doubled} />
 
 				{playerInput}
 			</StyledSection>
@@ -145,21 +148,7 @@ const FridayGame = () => {
 
 	// Game Logic
 	function fightCardClicked(id, ability, exileCost) {
-		// // return if card is already tapped
-		// if (tapped.indexOf(id) !== -1) return;
-
-		// // Add to tapped
-		// setTapped( prev => [...prev, id]);
-
-		// // Toggle selected
-		// if (selected.indexOf(id) === -1)
-		// {
-		// 	setSelected( prev => [...prev, id]);
-		// }
-		// else
-		// {
-		// 	setSelected(selected.filter(selID => selID !== id));
-		// }
+		
 		switch (gameState) 
 		{
 			case gameStateEnum.FIGHTING_HAZARD:
@@ -219,6 +208,13 @@ const FridayGame = () => {
 				setCurrentAbility(ability);
 				setGameState(gameStateEnum.ACTIVATING_ABILITY);
 				break;
+			case abilities.double:
+				selectingMode = true;
+				restrictSelectionOfDoubled = true;
+				setActiveID(id);
+				setCurrentAbility(ability);
+				setGameState(gameStateEnum.ACTIVATING_ABILITY);
+				break;
 			default:
 				console.log(`Ability ${Object.keys(abilities)[ability]} has not been implemented yet`);
 		}
@@ -228,6 +224,14 @@ const FridayGame = () => {
 	{
 		const id = selected[0];
 		setFaceDown(prev => [...prev, id]);
+		// Clear selected and return to fighting
+		setSelected([]);
+		setGameState(gameStateEnum.FIGHTING_HAZARD);
+	}
+
+	function handleCardDoubling() {
+		const id = selected[0];
+		setDoubled(prev => [...prev, id]);
 		// Clear selected and return to fighting
 		setSelected([]);
 		setGameState(gameStateEnum.FIGHTING_HAZARD);
@@ -279,6 +283,9 @@ const FridayGame = () => {
 		// debug log decks
 		console.log("playerDeck", pDeckState);
 		console.log("hazardDeck", hDeckState);
+		console.log("exile", exile);
+		console.log("pDiscard", pDiscardState);
+		console.log("hDiscard", hDiscardState);
 		// Determine next state
 		if (hDeck.deckLength() > 1)
 		{
@@ -329,15 +336,31 @@ const FridayGame = () => {
 
 	}
 
-	function exileCards(setStack, includeSelected) {
-		setStack(prev => prev.filter(card => {
+	function moveCardsAfterFight(fightWon) {
+		const toExile = [];
+		const toPlayerDiscard = [];
+		const cardsInPlay = [...leftSideCards, ...rightSideCards];
+
+		// Handle the hazard card location
+		if (fightWon) 
+		{
+			toPlayerDiscard.push(currentHazard);
+		}
+		else
+		{
+			hDeck.addToDiscard(currentHazard);
+		}
+
+		// Step through inPlay and move accordingly
+		cardsInPlay.forEach( card => {
 			const id = card.id;
-			const exiled = (includeSelected) ? selected.includes(id) || faceDown.includes(id) : faceDown.includes(id);
-			if (exiled) {
-				setExile(prev => [...prev, card]);
-			}
-			return !exiled;
-		}))
+			const exiled = (fightWon) ? faceDown.includes(id) : faceDown.includes(id) || selected.includes(id);
+			(exiled) ? toExile.push(card) : toPlayerDiscard.push(card);
+		})
+
+		// Add to discard or into exile state
+		pDeck.addToDiscard(...toPlayerDiscard);
+		setExile(prev => [...exile, ...toExile]);
 	}
 
 	function finishTurnBtn() {
@@ -345,23 +368,8 @@ const FridayGame = () => {
 		// TRUE:
 		if (toughnessRemaining <= 0)
 		{
-			// Handle facedown exiles
-			if (faceDown.length > 0)
-			{
-				exileCards(setLeftSideCards, false);
-				exileCards(setRightSideCards, false);
-			}
-
-			// Move hazard to player discard along with all played cards
-			pDeck.addToDiscard(currentHazard, ...leftSideCards, ...rightSideCards);
-
+			moveCardsAfterFight(true);
 			clearFightStates();
-
-			// Clear tapped and selected
-			setSelected([]);
-			setTapped([]);
-			setFaceDown([]);
-
 			// Update state
 			setGameState( ()=> gameStateEnum.TURN_OVER);
 		}
@@ -387,39 +395,10 @@ const FridayGame = () => {
 	}
 
 	function finishExile() {
-			// collect all played cards into initial array then split them between discard and exile
-			const allPlayed = [...leftSideCards, ...rightSideCards];
-			const toDiscard = [];
-			const toExile = [];
 
-			allPlayed.forEach(card => {
-				const id = card.id;
-				
-				if (selected.includes(id) || faceDown.includes(id))
-				{
-					toExile.push(card);
-				}
-				else
-				{
-					toDiscard.push(card);
-				}
-			});
-
-			// debugging
-			console.log("todiscard", toDiscard);
-			console.log("toExile", toExile);
-
-			// Move cards
-			pDeck.addToDiscard(...toDiscard);
-			hDeck.addToDiscard(currentHazard);
-			setExile(prev => [...prev, ...toExile]);
-
+			moveCardsAfterFight(false);
 			// cleanup
-			setSelected([]);
-			setTapped([]);
-			setFaceDown([]);
 			clearFightStates();
-
 			// Update state
 			setGameState( ()=> gameStateEnum.TURN_OVER);
 	}
@@ -436,13 +415,21 @@ const FridayGame = () => {
 		setCurrentHazard({});
 		setFreeCardsRemaining(0);
 		setToughnessRemaining(0);
+		setSelected([]);
+		setTapped([]);
+		setFaceDown([]);
 	}
 
 	function calculateToughnessRemaining(cards, toughness)
 	{
 		cards.forEach(card => {
 			if(!faceDown.includes(card.id))
-				toughness -= card.power;
+			{
+				if(doubled.includes(card.id))
+					toughness -= 2 * card.power;
+				else
+					toughness -= card.power;
+			}
 		});
 		return toughness;
 	}

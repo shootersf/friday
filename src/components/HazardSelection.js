@@ -1,7 +1,6 @@
 import HazardCard from "./HazardCard";
 
 const HazardSelection = ({ options , onClick }) => {
-	console.log(options);
 	if (options.length > 0)
 	{
 		return (
