@@ -1,3 +1,4 @@
+//#region imports
 import { useState, useEffect } from 'react'
 import styled from 'styled-components'
 
@@ -9,6 +10,7 @@ import FridayMainDisplay from './FridayMainDisplay'
 import EndOfTurnInput from './EndOfTurnInput'
 import FightingInput from './FightingInput'
 import SelectionAbilityInput from './SelectionAbilityInput'
+import BonusCardInput from './BonusCardInput'
 
 import { createDeck, createHazardDeck } from '../helpers'
 import { DeckBuilder } from '../DeckBuilder'
@@ -19,7 +21,7 @@ import { starterFightingCards } from '../data/starterFightingCards.js'
 import { hazardCards } from '../data/hazardCards.js'
 import { advancedFightingCards } from '../data/advancedFightingCards.js'
 import ExilingInput from './ExilingInput'
-
+//#endregion
 
 // Inline styling for section
 const StyledSection = styled.section`
@@ -36,13 +38,14 @@ let dummyCard = {
 	id: 1000,
 	power: 0,
 	name: "DUMMY",
-	ability: abilities.double,
+	ability: abilities.plus2Card,
 	exileCost: 1,
 }
 
-// Debug mode
-const debugCardAbility = false;
-const debugPhaseChange = true;
+//#region Debug
+const debugCardAbility = true;
+const debugPhaseChange = false;
+//#endregion
 
 let playerInput;				// Which input component is displayed. 
 let selectingMode = false;		// Whether selecting cards is allowed.
@@ -106,7 +109,6 @@ const FridayGame = () => {
 	},[leftSideCards,rightSideCards, faceDown, doubled, currentHazard.toughness])
 	
 	// Calculate input to show.
-	
 	switch(gameState) 
 	{
 		case gameStateEnum.TURN_OVER:
@@ -129,6 +131,25 @@ const FridayGame = () => {
 						break;
 					case abilities.double:
 						playerInput = <SelectionAbilityInput text="Select card to double" selected={selected} onClick={handleCardDoubling} />
+						break;
+					case abilities.exchange1:
+						playerInput = <SelectionAbilityInput text="Select card to exchange" selected={selected} onClick={handleCardExchange} />
+						break;
+					case abilities.exchange2:
+					{	
+						const text = `Select card to exchange. Remaining activations: ${activationsRemaining}`;
+						playerInput = <SelectionAbilityInput text={text} selected={selected} skipEnabled={activationsRemaining < 2}
+						onClick={handleCardExchange} skipClick={endAbility} />
+					}
+						break;
+					case abilities.plus1Card:
+						playerInput = <BonusCardInput text="Bonus cards remaining: 1" onClick={handleBonusCardDraw} />
+						break;
+					case abilities.plus2Card:
+					{	
+						const text = `Bonus cards remaining: ${activationsRemaining}`;
+						playerInput = <BonusCardInput text={text} onClick={handleBonusCardDraw} skipEnabled={activationsRemaining < 2} skipClick={endAbility} />
+					}
 						break;
 					default:
 						console.log("Danger Will Robinson!! danger");
@@ -227,6 +248,32 @@ const FridayGame = () => {
 				setCurrentAbility(ability);
 				setGameState(gameStateEnum.ACTIVATING_ABILITY);
 				break;
+			case abilities.exchange1:
+				selectingMode = true;
+				setActivationsRemaining(1);
+				setActiveID(id);
+				setCurrentAbility(ability);
+				setGameState(gameStateEnum.ACTIVATING_ABILITY);
+				break;
+			case abilities.exchange2:
+				selectingMode = true;
+				setActivationsRemaining(2);
+				setActiveID(id);
+				setCurrentAbility(ability);
+				setGameState(gameStateEnum.ACTIVATING_ABILITY);
+				break;
+			case abilities.plus1Card:
+				setActivationsRemaining(1);
+				setActiveID(id);
+				setCurrentAbility(ability);
+				setGameState(gameStateEnum.ACTIVATING_ABILITY);
+				break;
+			case abilities.plus2Card:
+				setActivationsRemaining(2);
+				setActiveID(id);
+				setCurrentAbility(ability);
+				setGameState(gameStateEnum.ACTIVATING_ABILITY);
+				break;
 			default:
 				console.log(`Ability ${Object.keys(abilities)[ability]} has not been implemented yet`);
 		}
@@ -246,6 +293,64 @@ const FridayGame = () => {
 		setDoubled(prev => [...prev, id]);
 		// Clear selected and return to fighting
 		setSelected([]);
+		setGameState(gameStateEnum.FIGHTING_HAZARD);
+	}
+
+	function handleCardExchange() {
+		const id = selected[0];
+		const {left, index} = whereIsTheCard(id);
+		// Clear selected to avoid double click if multiple activations
+		setSelected([]);
+
+		// Draw card
+		const newCard = drawFromPlayerDeck();
+		let toDiscard;
+
+		// Update correct side
+		if (left)
+		{
+			toDiscard = leftSideCards[index];
+			setLeftSideCards([...leftSideCards.slice(0, index), newCard, ...leftSideCards.slice(index + 1)]);
+		}
+		else
+		{
+			toDiscard = rightSideCards[index];
+			setRightSideCards([...rightSideCards.slice(0, index), newCard, ...rightSideCards.slice(index + 1)]);
+		}
+		pDeck.addToDiscard(toDiscard);
+
+		if (activationsRemaining === 1)
+		{
+			endAbility();
+		}	
+		else 
+		{
+			setActivationsRemaining(prev => prev - 1);
+		}	
+	}
+
+	function handleBonusCardDraw() {
+		// Draw and add to right side
+		const card = drawFromPlayerDeck();
+		setRightSideCards(prev => [...prev, card]);
+
+		// Last activation?
+		if (activationsRemaining === 1)
+		{
+			endAbility();
+		}
+		else 
+		{
+			setActivationsRemaining(prev => prev - 1);
+		}	
+	}
+
+	function endAbility() {
+		selectingMode = false;
+		setSelected([]);
+		setCurrentAbility(-1);
+		setActiveID(-1);
+		setActivationsRemaining(0);
 		setGameState(gameStateEnum.FIGHTING_HAZARD);
 	}
 
@@ -336,26 +441,17 @@ const FridayGame = () => {
 	}
 
 	function drawCardBtn() {
-		// check if deck is empty
-		if (pDeck.deckLength() === 0)
-		{
-			// TODO add aging card
-
-			// Shuffle back in
-			pDeck.shuffleWithDiscard();
-		}
-
 		// Draw card
 		// Determine which side to add to and add card to stack
 		if (freeCardsRemaining > 0)
 		{
-			const card = pDeck.draw();
+			const card = drawFromPlayerDeck();
 			setLeftSideCards((prev) => [...prev, card]);
 			setFreeCardsRemaining( () => freeCardsRemaining - 1);
 		}
 		else
 		{
-			const card = pDeck.draw();
+			const card = drawFromPlayerDeck();
 			setRightSideCards((prev) => [...prev, card]);
 			setLivesRemaining( () => livesRemaining - 1);
 		}
@@ -462,6 +558,44 @@ const FridayGame = () => {
 			}
 		});
 		return toughness;
+	}
+
+	function drawFromPlayerDeck() {
+		if (pDeck.deckLength() > 0)
+		{
+			return pDeck.draw();
+		}
+		else
+		{
+			// TODO: Add aging card
+
+			// Shuffle and draw
+			pDeck.shuffleWithDiscard();
+			return pDeck.draw();
+		}
+	}
+
+	function whereIsTheCard(cardID) {
+		const res = {};
+
+		for (let i = 0; i < leftSideCards.length; i++)
+		{
+			if (cardID === leftSideCards[i].id)
+			{
+				res.left = true;
+				res.index = i;
+				return res;
+			}
+		}
+		for (let i = 0; i < rightSideCards.length; i++)
+		{
+			if (cardID === rightSideCards[i].id)
+			{
+				res.left = false;
+				res.index = i;
+				return res;
+			}
+		}
 	}
 }
 
