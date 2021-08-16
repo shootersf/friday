@@ -12,7 +12,7 @@ import FightingInput from './FightingInput'
 import SelectionAbilityInput from './SelectionAbilityInput'
 import BonusCardInput from './BonusCardInput'
 
-import { createDeck, createHazardDeck } from '../helpers'
+import { createDeck, createHazardDeck, HazardDeck, AgeingDeck, FightingDeck } from '../helpers'
 import { DeckBuilder } from '../DeckBuilder'
 
 import { TOTAL_LIVES, gameStateEnum, abilities } from '../constants'
@@ -21,6 +21,7 @@ import { starterFightingCards } from '../data/starterFightingCards.js'
 import { hazardCards } from '../data/hazardCards.js'
 import { advancedFightingCards } from '../data/advancedFightingCards.js'
 import ExilingInput from './ExilingInput'
+import { ageingCards } from '../data/ageingCards'
 //#endregion
 
 // Inline styling for section
@@ -32,6 +33,7 @@ const StyledSection = styled.section`
 // Decks for the game
 let hDeck;
 let pDeck;
+let aDeck;
 
 // Dummy card for testing abilities
 let dummyCard = {
@@ -54,7 +56,10 @@ let restrictSelectionOfDoubled = false; 	// When true player cannot select doubl
 const FridayGame = () => {
 
 	// Initial state for game
-
+	if (!hDeck) hDeck = HazardDeck(createHazardDeck(18, advancedFightingCards, hazardCards), updatePhase);
+	if (!aDeck) aDeck = AgeingDeck(createDeck(48, ageingCards, 2));
+	if (!pDeck) pDeck = FightingDeck(createDeck(0, starterFightingCards), aDeck);
+	
 	// Deck states are managed by object returned by deckbuilder when methods of that object such as draw are called.
 	const [pDeckState, setPDeckState] = useState([]);
 	const [pDiscardState, setPDiscardState] = useState([]);
@@ -85,10 +90,8 @@ const FridayGame = () => {
 
 	// Setup the decks on first render
 	useEffect( ()=> {
-		hDeck = DeckBuilder(createHazardDeck(18, advancedFightingCards, hazardCards), setHDeckState, setHDiscardState);
-		pDeck = DeckBuilder(createDeck(0, starterFightingCards), setPDeckState, setPDiscardState);
-		hDeck.shuffleWithDiscard();
-		pDeck.shuffleWithDiscard();
+		pDeck.shuffle();
+		hDeck.shuffle();
 
 		// If debug add dummy card
 		if (debugCardAbility) pDeck.putOnTop(dummyCard);
@@ -107,6 +110,20 @@ const FridayGame = () => {
 	useEffect( ()=> {
 		setToughnessRemaining(calculateToughnessRemaining([...leftSideCards, ...rightSideCards], (currentHazard.toughness) ? currentHazard.toughness : [0, 0, 0]))
 	},[leftSideCards,rightSideCards, faceDown, doubled, currentHazard.toughness])
+
+	//Update hazard deck
+	useEffect( ()=> {
+
+		setHDeckState(hDeck.getDeck());
+		setHDiscardState(hDeck.getDiscard());
+	}, [hDeck.getDeck(), hDeck.getDiscard()]);
+
+	//Update player deck
+	useEffect( ()=> {
+
+		setPDeckState(pDeck.getDeck());
+		setPDiscardState(pDeck.getDiscard());
+	}, [pDeck.getDeck(), pDeck.getDiscard()]);
 	
 	// Calculate input to show.
 	switch(gameState) 
@@ -558,6 +575,10 @@ const FridayGame = () => {
 			}
 		});
 		return toughness;
+	}
+
+	function updatePhase() {
+		console.log("Phasing. Boom");
 	}
 
 	function drawFromPlayerDeck() {
